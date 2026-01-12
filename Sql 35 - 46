@@ -1,0 +1,441 @@
+
+/* ===========================================================
+   Global setup: drop existing tables to allow re-runs
+   =========================================================== */
+
+-- Order matters due to FKs; we drop children first
+
+-- Q45
+DROP TABLE IF EXISTS quarantine_urls;
+DROP TABLE IF EXISTS threat_types;
+
+-- Q44
+DROP TABLE IF EXISTS products;
+DROP TABLE IF EXISTS categories;
+
+-- Q43
+DROP TABLE IF EXISTS projects;
+DROP TABLE IF EXISTS freelancers;
+DROP TABLE IF EXISTS professions;
+
+-- Q42
+DROP TABLE IF EXISTS coupon_uses;
+DROP TABLE IF EXISTS coupons;
+
+-- Q41
+DROP TABLE IF EXISTS cash_flows_expected;
+DROP TABLE IF EXISTS investors_exp;
+
+-- Q40
+DROP TABLE IF EXISTS cash_flows;
+DROP TABLE IF EXISTS investors;
+
+-- Q39
+DROP TABLE IF EXISTS bondholders_bonds;
+DROP TABLE IF EXISTS bonds_cf;
+DROP TABLE IF EXISTS bondholders;
+
+-- Q38
+DROP TABLE IF EXISTS interest_rates;
+DROP TABLE IF EXISTS bonds_rates;
+
+-- Q37
+DROP TABLE IF EXISTS maturities;
+DROP TABLE IF EXISTS bonds;
+
+-- Q36
+DROP TABLE IF EXISTS email_stats;
+DROP TABLE IF EXISTS campaigns;
+
+/* ===========================================================
+   Q36 — Email Platform Engagement Stats
+   Tables: campaigns, email_stats
+   =========================================================== */
+CREATE TABLE campaigns (
+  id   INT PRIMARY KEY,
+  name VARCHAR(255)
+);
+
+CREATE TABLE email_stats (
+  campaign_id   INT,
+  emails_sent   INT,
+  emails_opened INT,
+  FOREIGN KEY (campaign_id) REFERENCES campaigns(id)
+);
+
+INSERT INTO campaigns (id, name) VALUES
+(1, 'SummerSale2021'),
+(2, 'FallPromo'),
+(3, 'WinterWonderland');
+
+INSERT INTO email_stats (campaign_id, emails_sent, emails_opened) VALUES
+-- campaign 1 rows
+(1, 1749, 775),
+(1, 641, 423),
+(1, 976, 598),
+(1, 756, 121),
+(1, 975, 107),
+(1, 752, 367),
+(1, 1068, 809),
+(1, 1046, 589),
+(1, 1212, 939),
+(1, 567, 214),
+-- campaign 2 rows
+(2, 1084, 283),
+(2, 992, 478),
+(2, 1505, 604),
+-- campaign 3 rows
+(3, 899, 315),
+(3, 742, 554),
+(3, 1744, 917),
+(3, 1163, 423),
+(3, 1501, 948),
+(3, 736, 451),
+(3, 537, 434);
+
+/* ===========================================================
+   Q37 — Bond Maturity Analysis
+   Tables: bonds, maturities
+   =========================================================== */
+CREATE TABLE bonds (
+  id   INT PRIMARY KEY,
+  name VARCHAR(255)
+);
+
+CREATE TABLE maturities (
+  bond_id  INT,
+  maturity DATE,
+  FOREIGN KEY (bond_id) REFERENCES bonds(id)
+);
+
+INSERT INTO bonds (id, name) VALUES
+(1, 'Alpha Mortgage Bond'),
+(2, 'Beta Mortgage Bond'),
+(3, 'Gamma Mortgage Bond');
+
+INSERT INTO maturities (bond_id, maturity) VALUES
+-- Alpha
+(1,'2024-01-26'),(1,'2024-02-22'),(1,'2024-03-26'),(1,'2024-05-13'),
+(1,'2024-07-06'),(1,'2024-08-23'),(1,'2024-09-06'),(1,'2024-11-30'),
+(1,'2024-12-30'),(1,'2025-04-30'),(1,'2025-05-03'),
+-- Beta
+(2,'2024-07-25'),(2,'2024-12-07'),
+-- Gamma
+(3,'2023-12-16'),(3,'2024-01-25'),(3,'2024-01-26'),(3,'2024-05-04'),
+(3,'2024-10-02'),(3,'2024-12-14'),(3,'2025-01-15');
+
+/* ===========================================================
+   Q38 — Bond Interest Rate Analysis
+   Tables: bonds_rates, interest_rates
+   =========================================================== */
+CREATE TABLE bonds_rates (
+  id   INT PRIMARY KEY,
+  name VARCHAR(255)
+);
+
+CREATE TABLE interest_rates (
+  bond_id INT,
+  rate    DECIMAL(3,1), -- percent
+  FOREIGN KEY (bond_id) REFERENCES bonds_rates(id)
+);
+
+INSERT INTO bonds_rates (id, name) VALUES
+(1,'Alpha Mortgage Bond'),(2,'Beta Mortgage Bond'),(3,'Gamma Mortgage Bond');
+
+INSERT INTO interest_rates (bond_id, rate) VALUES
+-- Alpha
+(1,1.4),(1,1.8),(1,2.0),(1,2.4),(1,3.4),(1,4.6),(1,4.7),(1,4.9),
+-- Beta
+(2,2.0),(2,2.1),(2,3.0),(2,3.2),(2,4.0),
+-- Gamma
+(3,1.2),(3,1.3),(3,1.4),(3,2.1),(3,2.5),(3,3.5),(3,4.0);
+
+/* ===========================================================
+   Q39 — Bond Cash Flow Analysis for Bondholders
+   Tables: bondholders, bonds_cf, bondholders_bonds
+   =========================================================== */
+CREATE TABLE bondholders (
+  id   INT PRIMARY KEY,
+  name VARCHAR(255)
+);
+
+CREATE TABLE bonds_cf (
+  id                INT PRIMARY KEY,
+  name              VARCHAR(255),
+  annual_coupon     DECIMAL(5,2),
+  coupons_remaining INT
+);
+
+CREATE TABLE bondholders_bonds (
+  bondholder_id INT,
+  bond_id       INT,
+  FOREIGN KEY (bondholder_id) REFERENCES bondholders(id),
+  FOREIGN KEY (bond_id)       REFERENCES bonds_cf(id)
+);
+
+INSERT INTO bondholders (id, name) VALUES
+(1,'Alex Smith'),(2,'Taylor Johnson'),(3,'Jordan Davis');
+
+INSERT INTO bonds_cf (id, name, annual_coupon, coupons_remaining) VALUES
+(1,'Golden Bonds',        150.00,4),
+(2,'Silver Lining',       200.00,2),
+(3,'Diamond Trust',       100.00,4),
+(4,'Emerald Wealth',      350.00,5),
+(5,'Ruby Returns',        150.00,8),
+(6,'Sapphire Security',   450.00,5),
+(7,'Amber Assurance',     100.00,8),
+(8,'Topaz Treasury',      100.00,2),
+(9,'Opal Opportunities',  150.00,5),
+(10,'Pearl Prosperity',   450.00,5),
+(11,'Platinum Promise',   450.00,9),
+(12,'Jade Investments',   350.00,1),
+(13,'Garnet Growth',      150.00,4),
+(14,'Onyx Returns',       350.00,2),
+(15,'Quartz Capital',     100.00,2),
+(16,'Citrine Securities', 250.00,2),
+(17,'Aquamarine Assets',  250.00,2),
+(18,'Peridot Portfolio',  300.00,8),
+(19,'Tourmaline Trust',   100.00,6),
+(20,'Moonstone Money',    150.00,9);
+
+INSERT INTO bondholders_bonds (bondholder_id, bond_id) VALUES
+-- Alex Smith (id=1)
+(1,1),(1,2),(1,6),(1,8),(1,9),(1,13),(1,14),(1,16),(1,17),
+-- Taylor Johnson (id=2)
+(2,4),(2,5),(2,7),(2,11),(2,15),(2,18),
+-- Jordan Davis (id=3)
+(3,3),(3,10),(3,12),(3,19),(3,20);
+
+/* ===========================================================
+   Q40 — Sum of the Cash Flows Analysis
+   Tables: investors, cash_flows
+   =========================================================== */
+CREATE TABLE investors (
+  id    INT PRIMARY KEY,
+  email VARCHAR(255) UNIQUE
+);
+
+CREATE TABLE cash_flows (
+  investor_id INT,
+  cash_flow   DECIMAL(8,2),
+  FOREIGN KEY (investor_id) REFERENCES investors(id)
+);
+
+INSERT INTO investors (id, email) VALUES
+(1,'ematson0@ebay.co.uk'),
+(2,'salvadore1@msn.com'),
+(3,'aclowser2@patch.com');
+
+INSERT INTO cash_flows (investor_id, cash_flow) VALUES
+-- investor 1
+(1,184040.12),(1,179280.08),(1,179374.42),(1,79302.21),
+(1,87466.20),(1,194588.36),(1,153563.92),(1,56377.92),
+-- investor 2
+(2,59039.14),(2,167247.23),(2,59311.03),(2,183883.00),(2,118851.21),
+-- investor 3
+(3,58868.62),(3,96909.26),(3,103735.73),(3,171261.97),
+(3,86463.11),(3,56931.73),(3,194699.58);
+
+/* ===========================================================
+   Q41 — Expected Cash Flow Analysis
+   Tables: investors_exp, cash_flows_expected
+   =========================================================== */
+CREATE TABLE investors_exp (
+  id    INT PRIMARY KEY,
+  email VARCHAR(255) UNIQUE
+);
+
+CREATE TABLE cash_flows_expected (
+  investor_id   INT,
+  expected_flow DECIMAL(8,2),
+  FOREIGN KEY (investor_id) REFERENCES investors_exp(id)
+);
+
+INSERT INTO investors_exp (id, email) VALUES
+(1,'tdowner0@timesonline.co.uk'),
+(2,'cgarza1@opera.com'),
+(3,'nbarwise2@si.edu');
+
+INSERT INTO cash_flows_expected (investor_id, expected_flow) VALUES
+-- investor 1
+(1,24923.83),(1,30212.10),(1,87126.50),(1,56018.65),
+(1,93357.47),(1,55073.54),(1,27095.07),
+-- investor 2
+(2,44165.12),(2,43658.84),(2,35835.34),(2,12660.46),(2,58676.60),
+(2,95929.25),(2,47161.23),(2,80283.91),(2,54427.20),(2,93223.98),
+-- investor 3
+(3,19741.35),(3,12243.25),(3,50470.06);
+
+/* ===========================================================
+   Q42 — Online Store Coupon Codes Report
+   Tables: coupons, coupon_uses
+   =========================================================== */
+CREATE TABLE coupons (
+  id           INT PRIMARY KEY,
+  coupon_code  VARCHAR(255) UNIQUE,
+  description  VARCHAR(255),
+  is_enabled   SMALLINT
+);
+
+CREATE TABLE coupon_uses (
+  coupon_id INT,
+  amount    DECIMAL(4,2),
+  FOREIGN KEY (coupon_id) REFERENCES coupons(id)
+);
+
+INSERT INTO coupons (id, coupon_code, description, is_enabled) VALUES
+(1,'COUPON123','nisi nam ultrices libero non',0),
+(2,'SAVE20','ac est lacinia',1),
+(3,'DISCOUNT50','quis odio consequat',1);
+
+INSERT INTO coupon_uses (coupon_id, amount) VALUES
+(1,36.68),(1,3.56),(1,2.10),(1,39.58),
+(2,39.81),(2,24.07),(2,28.42),(2,31.03),(2,3.24),(2,36.33),
+(3,8.89),(3,30.44),(3,36.94),(3,42.65),(3,33.61),(3,41.92),
+(3,1.78),(3,20.26),(3,27.92),(3,0.23);
+
+/* ===========================================================
+   Q43 — Freelancer Platform Yearly Income Report
+   Tables: professions, freelancers, projects
+   =========================================================== */
+CREATE TABLE professions (
+  id    INT PRIMARY KEY,
+  title VARCHAR(255) UNIQUE
+);
+
+CREATE TABLE freelancers (
+  id             INT PRIMARY KEY,
+  profession_id  INT,
+  email          VARCHAR(255) UNIQUE,
+  FOREIGN KEY (profession_id) REFERENCES professions(id)
+);
+
+CREATE TABLE projects (
+  id             INT PRIMARY KEY,
+  freelancer_id  INT,
+  status         VARCHAR(20), -- 'Completed','Ongoing','Cancelled'
+  income         DECIMAL(6,2),
+  FOREIGN KEY (freelancer_id) REFERENCES freelancers(id)
+);
+
+INSERT INTO professions (id, title) VALUES
+(1,'Artificial Intelligence Engineer'),
+(3,'Game Developer'),
+(2,'Network Administrator');
+
+INSERT INTO freelancers (id, profession_id, email) VALUES
+(1,1,'lfernez0@microsoft.com'),
+(3,2,'mbrydone2@delicious.com'),
+(4,2,'jhamp3@4shared.com'),
+(5,3,'cparfett4@twitter.com');
+
+INSERT INTO projects (id, freelancer_id, status, income) VALUES
+(5, 1, 'Completed', 8562.13),
+(11,1, 'Completed', 6727.56),
+(10,3, 'Completed', 3753.46),
+(20,3, 'Completed', 6659.39),
+(6, 4, 'Completed', 8459.28),
+(13,4, 'Completed', 5899.31),
+(16,4, 'Completed', 2709.63),
+(4, 5, 'Completed', 5029.44),
+(7, 5, 'Completed', 1763.94),
+(9, 5, 'Completed', 6988.36),
+(8, 3, 'Cancelled', 8699.67),
+(1, 5, 'Cancelled', 5403.21),
+(19,3, 'Ongoing',   72.51),
+(3, 4, 'Ongoing',   8561.14),
+(15,4, 'Ongoing',   9235.78),
+(17,4, 'Ongoing',   4307.76);
+
+/* ===========================================================
+   Q44 — Ecommerce Warehouse Stock Report
+   Tables: categories, products
+   =========================================================== */
+CREATE TABLE categories (
+  id    INT PRIMARY KEY,
+  title VARCHAR(255) UNIQUE
+);
+
+CREATE TABLE products (
+  id            INT PRIMARY KEY,
+  category_id   INT,
+  title         VARCHAR(255),
+  sku           VARCHAR(255) UNIQUE,
+  stock_number  INT,
+  FOREIGN KEY (category_id) REFERENCES categories(id)
+);
+
+INSERT INTO categories (id, title) VALUES
+(1,'Electronics'),
+(2,'Clothing'),
+(3,'Home & Kitchen');
+
+INSERT INTO products (id, category_id, title, sku, stock_number) VALUES
+(11,1,'Elegant Gadget','EG-11',4),
+(3, 1,'Luxury Gizmo','LG-3',10),
+(19,1,'Sleek Widget','SW-19',8),
+(8, 1,'Sleek Widget','SW-8',8),
+(14,2,'Elegant Gadget','EG-14',2),
+(16,2,'Elegant Gadget','EG-16',6),
+(10,2,'Elegant Gadget','EG-10',10),
+(7, 2,'Luxury Gizmo','LG-7',3),
+(2, 2,'Luxury Gizmo','LG-2',8),
+(18,2,'Luxury Gizmo','LG-18',9),
+(1, 2,'Sleek Widget','SW-1',3),
+(6, 2,'Sleek Widget','SW-6',7),
+(20,3,'Elegant Gadget','EG-20',10),
+(9, 3,'Luxury Gizmo','LG-9',4),
+(12,3,'Luxury Gizmo','LG-12',5),
+(13,3,'Luxury Gizmo','LG-13',5),
+(5, 3,'Luxury Gizmo','LG-5',9),
+(4, 3,'Sleek Widget','SW-4',8),
+(15,3,'Sleek Widget','SW-15',9),
+(17,3,'Sleek Widget','SW-17',9);
+
+/* ===========================================================
+   Q45 — Antivirus Database Quarantine Report
+   Tables: threat_types, quarantine_urls
+   =========================================================== */
+CREATE TABLE threat_types (
+  id          INT PRIMARY KEY,
+  threat_type VARCHAR(255)
+);
+
+CREATE TABLE quarantine_urls (
+  id             INT PRIMARY KEY,
+  threat_id      INT,
+  domain_name    VARCHAR(255),
+  status         VARCHAR(20), -- 'Quarantined','Safe','Deleted'
+  users_affected INT,
+  FOREIGN KEY (threat_id) REFERENCES threat_types(id)
+);
+
+INSERT INTO threat_types (id, threat_type) VALUES
+(1,'Phishing'),(2,'Rootkit'),(3,'Malware');
+
+INSERT INTO quarantine_urls (id, threat_id, domain_name, status, users_affected) VALUES
+(17,1,'amazon.com','Quarantined',862),
+(16,1,'google.com','Quarantined',63),
+(9, 1,'amazon.com','Quarantined',41),
+(18,2,'amazon.com','Quarantined',149),
+(12,2,'yahoo.com','Quarantined',967),
+(4, 3,'amazon.com','Quarantined',377),
+(10,3,'yahoo.com','Quarantined',721),
+(11,1,'yahoo.com','Deleted',551),
+(20,1,'amazon.com','Safe',407),
+(19,1,'amazon.com','Deleted',665),
+(15,1,'facebook.com','Safe',52),
+(2, 1,'google.com','Safe',309),
+(1, 2,'twitter.com','Safe',562),
+(13,2,'facebook.com','Safe',208),
+(14,2,'google.com','Deleted',731),
+(8, 2,'twitter.com','Safe',924),
+(7, 2,'twitter.com','Safe',982),
+(6, 2,'google.com','Deleted',864),
+(3, 2,'facebook.com','Safe',136),
+(5, 3,'yahoo.com','Safe',949);
+
+/* ===========================================================
+   END OF BOOTSTRAP
+   You can now write your queries for Q36–Q45 against these tables.
+   =========================================================== */
